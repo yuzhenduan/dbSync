@@ -10,7 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dump/', include("mysqldump.urls")),
     path('diff/', include("mysqldiff.urls")),
-    path('local/', include("local.urls")),
+    path('dumplocal/', include("dumplocal.urls")),
     path('pipeline/', include("pipeline.urls")),
     path('', health,name="health"),
 ]

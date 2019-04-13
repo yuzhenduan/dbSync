@@ -13,7 +13,7 @@ class DbInfo:
         return self.mysql_exec(sql)
 
 
-    def mysql_exec(self,sql,cursor_type=pymysql.cursors.DictCursor):
+    def mysql_exec(self,sql,cursor_type=None):
         infos={"status":False,"data":[],"message":None}
         if "database" in self.conn_info.keys():
              database=self.conn_info["database"]
@@ -34,10 +34,16 @@ class DbInfo:
         except Exception as e:
             infos["message"]=e
             return infos
+        tag=sql.lower().startswith('select')
+        if tag:
+            cursor_type=pymysql.cursors.DictCursor
         with conn.cursor(cursor=cursor_type) as cursor:
             try:
                 cursor.execute(sql)
-                infos["data"]=cursor.fetchall()
+                if tag:
+                    infos["data"]=cursor.fetchall()
+                else:
+                    conn.commit()
                 infos["status"]=True
             except pymysql.err.ProgrammingError as e:
                 infos["message"]="Syntax error"
@@ -45,6 +51,10 @@ class DbInfo:
                 infos["message"]="Unknown column"
             except Exception as e:
                 infos["message"]=e 
+        try:
+            conn.close()
+        except Exception as e:
+            infos["message"]="db connection already close!"
         return infos
 
     def check_conn(self):
@@ -68,7 +78,3 @@ class DbInfo:
             infos["message"]=e
         return infos
 
-if __name__=="__main__":
-   data={"host":"192.168.137.4","port":3306,"username":"yuzhen","password":"yuzhen","database":"env"}
-   db=DbInfo(data)
-   print(db.mysql_exec("select * from env"))
